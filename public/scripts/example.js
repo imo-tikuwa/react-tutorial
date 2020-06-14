@@ -31,16 +31,18 @@ var Comment = React.createClass({
 
 var CommentBox = React.createClass({
   loadCommentsFromServer: function() {
-    $.ajax({
-      url: this.props.url,
+    fetch(this.props.url, {
       dataType: 'json',
-      cache: false,
-      success: function(data) {
-        this.setState({data: data});
-      }.bind(this),
-      error: function(xhr, status, err) {
-        console.error(this.props.url, status, err.toString());
-      }.bind(this)
+      cache: 'no-cache',
+    })
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error(`${this.props.url} ${res.status} ${res.statusText}`);
+      }
+      return res.json();
+    })
+    .then((data) => {
+      this.setState({data: data});
     });
   },
   handleCommentSubmit: function(comment) {
@@ -51,18 +53,25 @@ var CommentBox = React.createClass({
     comment.id = Date.now();
     var newComments = comments.concat([comment]);
     this.setState({data: newComments});
-    $.ajax({
-      url: this.props.url,
+
+    let formdata = new FormData();
+    for (let key in comment) {
+      formdata.append(key, comment[key]);
+    }
+    fetch(this.props.url, {
       dataType: 'json',
-      type: 'POST',
-      data: comment,
-      success: function(data) {
-        this.setState({data: data});
-      }.bind(this),
-      error: function(xhr, status, err) {
+      method: 'POST',
+      body: formdata
+    })
+    .then((res) => {
+      if (!res.ok) {
         this.setState({data: comments});
-        console.error(this.props.url, status, err.toString());
-      }.bind(this)
+        throw new Error(`${this.props.url} ${res.status} ${res.statusText}`);
+      }
+      return res.json();
+    })
+    .then((data) => {
+      this.setState({data: data});
     });
   },
   getInitialState: function() {
