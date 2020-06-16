@@ -38,8 +38,6 @@ class CommentBox extends React.Component {
   constructor(props) {
     super(props);
     this.state = {data: []};
-
-    this.loadCommentsFromServer();
   }
 
   loadCommentsFromServer() {
@@ -89,6 +87,7 @@ class CommentBox extends React.Component {
   }
 
   componentDidMount() {
+    this.loadCommentsFromServer();
     setInterval(this.loadCommentsFromServer.bind(this), this.props.pollInterval);
   }
 
